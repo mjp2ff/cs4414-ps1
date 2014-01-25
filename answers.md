@@ -2,6 +2,7 @@ Title: Problem Set 1 Answers
 Author: Matt Pearson-Beck
 
 Problem 1.
+
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36
 
 I analyze this piece by piece below:
@@ -26,3 +27,6 @@ One cool passage I found on that site (http://webaim.org/blog/user-agent-string-
 
 Problem 2.
 
+Rust places a huge focus on catching errors at compile time, which means it wants to know as much as it possibly can about what state the program will be in at certain points in the code. Global variables make it almost impossible to tell what the state of the program will be at any given point that they are used, because they could have been changed anywhere else in the program at any time. I believe this is why they are considered unsafe, but why we still *can* use them (with the unsafe blocks).
+
+In terms of tracking the state the program will be in when global variables are used, my inclination is that it would be just as hard as the Halting Problem (so undecidable), which is why the compiler can't do it.
