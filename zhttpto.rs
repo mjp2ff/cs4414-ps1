@@ -49,29 +49,29 @@ fn main() {
             let first_line = request_str.split('\n').next().unwrap();
             let first_line_array = first_line.split(' ').to_owned_vec();
             
-            if (first_line_array[0].trim() == "GET" &&
-                    first_line_array[2].trim() == "HTTP/1.1" &&
-                    first_line_array[1].trim() != "/")  {
+            if (str::eq(&first_line_array[0].trim().to_owned(), &~"GET") &&
+                    str::eq(&first_line_array[2].trim().to_owned(), &~"HTTP/1.1") &&
+                    !str::eq(&first_line_array[1].trim().to_owned(), &~"/"))  {
                 
-                let filepath = ~std::path::posix::Path::new(
-                    first_line_array[1].trim().split('/').to_owned_vec()[1].trim());
-                    // ^ Removes leading '/' in order to get into current directory.
-                
+                let filepathStr = first_line_array[1].trim().slice_from(1);
+                    // ^ Removes leading '/' in order to get into cwd.
+
+                let filepath = ~std::path::posix::Path::new(filepathStr);
+
                 let mut response : ~str = ~"";
+                let isHTML : bool = str::eq(&filepathStr.slice_from(filepathStr.len() - 5).to_owned(), &~".html")
+                    && !filepathStr.contains("../");
                 
-                if (filepath.is_file()) {
-                    
-                    if (first_line_array[1].trim().split('.').last().unwrap() == "html") {
+                if (isHTML) {
+                    if (filepath.is_file()) {
                         let mut file = File::open(filepath);
                         stream.write(file.read_to_end());
                     }
-                    
-                    else { response = response + format!("HTTP/1.1 403 FORBIDDEN"); }
+                    else { response = response + format!("HTTP/1.1 404 NOT FOUND"); }
                 }
+                else { response = response + format!("HTTP/1.1 403 FORBIDDEN"); }
 
-                else { response = response + format!("HTTP/1.1 404 NOT FOUND"); }
-
-                if (!filepath.is_file() || first_line_array[1].trim().split('.').last().unwrap() != "html") {
+                if (!filepath.is_file() || !isHTML) {
                     response = response + 
                         format!("\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
                         <doctype !html><html><head><title>{:s}</title>
@@ -87,8 +87,8 @@ fn main() {
                             <img src=\"http://i.imgur.com/5uDhTkr.jpg\" alt=\"Ya 'dun goofed!\">
                          </p>
                          </body></html>\r\n", 
-                         if(!filepath.is_file()) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" },
-                         if(!filepath.is_file()) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" });
+                         if(isHTML) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" },
+                         if(isHTML) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" });
                     stream.write(response.as_bytes());
                 }
             }
