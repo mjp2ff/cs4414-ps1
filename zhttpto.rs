@@ -59,10 +59,11 @@ fn main() {
                 let filepath = ~std::path::posix::Path::new(filepathStr);
 
                 let mut response : ~str = ~"";
-                let isHTML : bool = str::eq(&filepathStr.slice_from(filepathStr.len() - 5).to_owned(), &~".html")
-                    && !filepathStr.contains("../");
+                let isValid : bool = str::eq(&filepathStr.slice_from(filepathStr.len() - 5).to_owned(), &~".html")
+                    && !filepathStr.contains("../") 
+                    && !str::eq(&filepathStr.slice_to(1).to_owned(), &~"/");
                 
-                if (isHTML) {
+                if (isValid) {
                     if (filepath.is_file()) {
                         let mut file = File::open(filepath);
                         stream.write(file.read_to_end());
@@ -71,7 +72,7 @@ fn main() {
                 }
                 else { response = response + format!("HTTP/1.1 403 FORBIDDEN"); }
 
-                if (!filepath.is_file() || !isHTML) {
+                if (!filepath.is_file() || !isValid) {
                     response = response + 
                         format!("\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
                         <doctype !html><html><head><title>{:s}</title>
@@ -87,8 +88,8 @@ fn main() {
                             <img src=\"http://i.imgur.com/5uDhTkr.jpg\" alt=\"Ya 'dun goofed!\">
                          </p>
                          </body></html>\r\n", 
-                         if(isHTML) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" },
-                         if(isHTML) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" });
+                         if(isValid) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" },
+                         if(isValid) { "404 - NOT FOUND" } else { "403 - FORBIDDEN" });
                     stream.write(response.as_bytes());
                 }
             }
